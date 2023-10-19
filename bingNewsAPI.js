@@ -1,23 +1,40 @@
-export async function fetchTrendingTopics(subscriptionKey) {
-  const res = await fetch(
-    "https://api.bing.microsoft.com/v7.0/news/trendingtopics",
-    {
-      headers: {
-        "Ocp-Apim-Subscription-Key": subscriptionKey,
-      },
-    }
-  );
-  return await res.json();
-}
+export class BingNewsAPI {
+  constructor(subscriptionKey, throttler) {
+    this.subscriptionKey = subscriptionKey;
+    this.throttler = throttler;
+  }
 
-export async function fetchNewsByQuery(subscriptionKey, query) {
-  const res = await fetch(
-    `https://api.bing.microsoft.com/v7.0/news/search?q=${query}`,
-    {
-      headers: {
-        "Ocp-Apim-Subscription-Key": subscriptionKey,
-      },
+  async fetchTrendingTopics() {
+    const res = await this.throttler.run(() =>
+      fetch("https://api.bing.microsoft.com/v7.0/news/trendingtopics", {
+        headers: {
+          "Ocp-Apim-Subscription-Key": this.subscriptionKey,
+        },
+      }),
+    );
+    if (res.status !== 200) {
+      throw res;
     }
-  );
-  return await res.json();
+
+    const data = await res.json();
+
+    return data.value;
+  }
+
+  async fetchNewsByQuery(query) {
+    const res = await this.throttler.run(() =>
+      fetch(`https://api.bing.microsoft.com/v7.0/news/search?q=${query}`, {
+        headers: {
+          "Ocp-Apim-Subscription-Key": this.subscriptionKey,
+        },
+      }),
+    );
+    if (res.status !== 200) {
+      throw res;
+    }
+
+    const data = await res.json();
+
+    return data.value;
+  }
 }
