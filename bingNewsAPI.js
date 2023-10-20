@@ -23,7 +23,7 @@ export class BingNewsAPI {
 
   async fetchNewsByQuery(query) {
     const res = await this.throttler.run(() =>
-      fetch(`https://api.bing.microsoft.com/v7.0/news/search?q=${query}`, {
+      fetch(`https://api.bing.microsoft.com/v7.0/news/search?${query}`, {
         headers: {
           "Ocp-Apim-Subscription-Key": this.subscriptionKey,
         },
