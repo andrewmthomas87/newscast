@@ -48,3 +48,19 @@ export async function getTrendingArticles(
 
   return articles;
 }
+
+export function filterArticles(articles, minArticleLength, maxArticles) {
+  return articles
+    .map(({ topic, articles }) => ({
+      topic,
+      articles: articles.filter(
+        ({ data }) =>
+          data !== null && data.textContent.length >= minArticleLength,
+      ),
+    }))
+    .map(({ topic, articles }) => ({
+      topic,
+      articles: articles.slice(0, maxArticles),
+    }))
+    .filter(({ articles }) => articles.length > 0);
+}
