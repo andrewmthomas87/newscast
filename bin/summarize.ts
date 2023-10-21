@@ -1,11 +1,11 @@
 import { AI } from "../ai";
-import { filterArticles } from "../articles";
+import { TopicAndArticles, filterArticles } from "../articles";
 import { Throttler } from "../utils/throttler";
 
 const OPENAI_API_KEY = process.env.NEWSCAST_OPENAI_API_KEY;
 const OPENAI_API_MODEL = process.env.NEWSCAST_OPENAI_API_MODEL;
 const OPENAI_API_THROTTLE_RPS = parseFloat(
-  process.env.NEWSCAST_OPENAI_API_THROTTLE_RPS,
+  process.env.NEWSCAST_OPENAI_API_THROTTLE_RPS || "",
 );
 
 if (!OPENAI_API_KEY) {
@@ -19,13 +19,17 @@ if (!OPENAI_API_KEY) {
 const MIN_ARTICLE_LENGTH = 250;
 const MAX_ARTICLES = 4;
 
-let articles;
+let input = "";
 for await (const line of console) {
-  articles = JSON.parse(line);
-  break;
+  input += line;
 }
+let topicsAndArticles: TopicAndArticles[] = JSON.parse(input);
 
-articles = filterArticles(articles, MIN_ARTICLE_LENGTH, MAX_ARTICLES);
+topicsAndArticles = filterArticles(
+  topicsAndArticles,
+  MIN_ARTICLE_LENGTH,
+  MAX_ARTICLES,
+);
 
 const ai = new AI(
   OPENAI_API_KEY,
@@ -34,7 +38,7 @@ const ai = new AI(
 );
 
 const summaries = await Promise.all(
-  articles.map(({ articles }) =>
+  topicsAndArticles.map(({ articles }) =>
     Promise.all(articles.map((article) => ai.summarizeArticle(article))),
   ),
 );

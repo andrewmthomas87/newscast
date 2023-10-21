@@ -1,7 +1,7 @@
 import { Readability } from "@mozilla/readability";
 import { JSDOM } from "jsdom";
 
-export async function scrapeArticleFromURL(url) {
+export async function scrapeArticleFromURL(url: string) {
   const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
   const html = await res.text();
 

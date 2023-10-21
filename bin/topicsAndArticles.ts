@@ -1,11 +1,11 @@
 import { Throttler } from "../utils/throttler";
-import { BingNewsAPI } from "../bingNewsAPI";
-import { getTrendingArticles } from "../articles";
+import { BingNewsAPI } from "../bingNewsAPI/api";
+import { getTrendingTopicsAndArticles } from "../articles";
 
 const BING_NEWS_API_SUBSCRIPTION_KEY =
   process.env.NEWSCAST_BING_NEWS_API_SUBSCRIPTION_KEY;
 const BING_NEWS_API_THROTTLE_RPS = parseFloat(
-  process.env.NEWSCAST_BING_NEWS_API_THROTTLE_RPS,
+  process.env.NEWSCAST_BING_NEWS_API_THROTTLE_RPS || "",
 );
 const TOPIC_COUNT = parseInt(process.env.NEWSCAST_TOPIC_COUNT || "5");
 const ARTICLE_COUNT = parseInt(process.env.NEWSCAST_ARTICLE_COUNT || "10");
@@ -27,6 +27,10 @@ const api = new BingNewsAPI(
   new Throttler(BING_NEWS_API_THROTTLE_RPS),
 );
 
-const articles = await getTrendingArticles(api, TOPIC_COUNT, ARTICLE_COUNT);
+const topicsAndArticles = await getTrendingTopicsAndArticles(
+  api,
+  TOPIC_COUNT,
+  ARTICLE_COUNT,
+);
 
-console.log(JSON.stringify(articles));
+console.log(JSON.stringify(topicsAndArticles));

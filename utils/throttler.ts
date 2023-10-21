@@ -1,7 +1,9 @@
 export class Throttler {
-  constructor(rps) {
+  public rps: number;
+  public prevTime: number | null = null;
+
+  constructor(rps: number) {
     this.rps = rps;
-    this.prevTime = null;
   }
 
   getWaitTime() {
@@ -15,7 +17,7 @@ export class Throttler {
     return waitTime;
   }
 
-  async run(fn) {
+  async run<T>(fn: (...args: any) => T | Promise<T>) {
     const waitTime = this.getWaitTime();
     if (waitTime > 0) {
       await Bun.sleep(waitTime);

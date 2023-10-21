@@ -1,14 +1,21 @@
 import OpenAI from "openai";
+import { Throttler } from "./utils/throttler";
+import { Article } from "./articles";
+import { ChatCompletionMessage } from "openai/resources/index.mjs";
 
 export class AI {
-  constructor(apiKey, model, throttler) {
+  public openai: OpenAI;
+  public model: string;
+  public throttler: Throttler;
+
+  constructor(apiKey: string, model: string, throttler: Throttler) {
     this.openai = new OpenAI({ apiKey });
     this.model = model;
     this.throttler = throttler;
   }
 
-  async summarizeArticle({ result, data }) {
-    const articleContent = `${result.name}\n\n${data.textContent}`;
+  async summarizeArticle({ result, data }: Article) {
+    const articleContent = `${result.name}\n\n${data?.textContent}`;
     const messages = [
       {
         role: "system",
@@ -23,7 +30,7 @@ export class AI {
         role: "user",
         content: "Summarize the article in 5-10 bullet points.",
       },
-    ];
+    ] satisfies ChatCompletionMessage[];
 
     const completion = await this.throttler.run(() =>
       this.openai.chat.completions.create({

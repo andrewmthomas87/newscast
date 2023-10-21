@@ -1,9 +1,10 @@
+import { BingNewsAPI } from "./bingNewsAPI/api";
 import { scrapeArticleFromURL } from "./scrape";
 
-export async function getTrendingArticles(
-  api,
-  topicCount,
-  articleCount,
+export async function getTrendingTopicsAndArticles(
+  api: BingNewsAPI,
+  topicCount: number,
+  articleCount: number,
   mkt = "en-US",
   freshness = "Day",
 ) {
@@ -15,18 +16,18 @@ export async function getTrendingArticles(
       const query = new URLSearchParams({
         q: topic.query.text,
         mkt,
-        count: articleCount,
+        count: articleCount.toString(),
         freshness,
       });
 
       return {
         topic,
-        results: await api.fetchNewsByQuery(query),
+        results: await api.fetchNewsByQuery(query.toString()),
       };
     }),
   );
 
-  const articles = await Promise.all(
+  const topicAndArticles = await Promise.all(
     results.map(async ({ topic, results }) => ({
       topic,
       articles: await Promise.all(
@@ -46,11 +47,21 @@ export async function getTrendingArticles(
     })),
   );
 
-  return articles;
+  return topicAndArticles;
 }
 
-export function filterArticles(articles, minArticleLength, maxArticles) {
-  return articles
+type TopicsAndArticles = Awaited<
+  ReturnType<typeof getTrendingTopicsAndArticles>
+>;
+export type TopicAndArticles = TopicsAndArticles[number];
+export type Article = TopicAndArticles["articles"][number];
+
+export function filterArticles(
+  topicsAndArticles: TopicAndArticles[],
+  minArticleLength: number,
+  maxArticles: number,
+) {
+  return topicsAndArticles
     .map(({ topic, articles }) => ({
       topic,
       articles: articles.filter(

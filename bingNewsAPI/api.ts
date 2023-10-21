@@ -1,5 +1,13 @@
+// Bing News API: https://learn.microsoft.com/en-us/rest/api/cognitiveservices-bingsearch/bing-news-api-v7-reference
+
+import { Throttler } from "../utils/throttler";
+import { APIErrorResponse, APINews, APITrendingTopics } from "./types";
+
 export class BingNewsAPI {
-  constructor(subscriptionKey, throttler) {
+  public subscriptionKey: string;
+  public throttler: Throttler;
+
+  constructor(subscriptionKey: string, throttler: Throttler) {
     this.subscriptionKey = subscriptionKey;
     this.throttler = throttler;
   }
@@ -16,12 +24,15 @@ export class BingNewsAPI {
       throw res;
     }
 
-    const data = await res.json();
+    const data: APITrendingTopics | APIErrorResponse = await res.json();
+    if (data._type !== "TrendingTopics") {
+      throw data;
+    }
 
     return data.value;
   }
 
-  async fetchNewsByQuery(query) {
+  async fetchNewsByQuery(query: string) {
     const res = await this.throttler.run(() =>
       fetch(`https://api.bing.microsoft.com/v7.0/news/search?${query}`, {
         headers: {
@@ -33,7 +44,10 @@ export class BingNewsAPI {
       throw res;
     }
 
-    const data = await res.json();
+    const data: APINews | APIErrorResponse = await res.json();
+    if (data._type !== "News") {
+      throw data;
+    }
 
     return data.value;
   }
