@@ -10,6 +10,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Job {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  type    String
+  payload String
+
+  status      String   @default("pending")
+  startedAt   DateTime?
+  completedAt DateTime?
+}
+
 model Topic {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())

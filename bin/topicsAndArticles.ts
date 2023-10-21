@@ -74,3 +74,13 @@ const articleIDs = (
 ).flatMap((topic) => topic.articles.map((article) => article.id));
 
 console.log(`added ${topics.length} topics, ${articleIDs.length} articles`);
+
+const jobs = await db.$transaction(
+  articleIDs.map((id) =>
+    db.job.create({
+      data: { type: "summarize", payload: JSON.stringify({ id }) },
+    }),
+  ),
+);
+
+console.log(`queued ${jobs.length} summarize jobs`);
