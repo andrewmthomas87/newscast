@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Topic {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  name  String
+  query String
+
+  json String
+
+  articles Article[]
+}
+
+model Article {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  name        String
+  url         String
+  result      String
+  data        String
+  textContent String
+
+  topic   Topic @relation(fields: [topicID], references: [id])
+  topicID Int
+}

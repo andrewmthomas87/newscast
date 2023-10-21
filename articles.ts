@@ -56,7 +56,7 @@ type TopicsAndArticles = Awaited<
 export type TopicAndArticles = TopicsAndArticles[number];
 export type Article = TopicAndArticles["articles"][number];
 
-export function filterArticles(
+export function filterTopicsAndArticles(
   topicsAndArticles: TopicAndArticles[],
   minArticleLength: number,
   maxArticles: number,

@@ -1,5 +1,5 @@
 import { AI } from "../ai";
-import { TopicAndArticles, filterArticles } from "../articles";
+import { TopicAndArticles, filterTopicsAndArticles } from "../articles";
 import { Throttler } from "../utils/throttler";
 
 const OPENAI_API_KEY = process.env.NEWSCAST_OPENAI_API_KEY;
@@ -25,7 +25,7 @@ for await (const line of console) {
 }
 let topicsAndArticles: TopicAndArticles[] = JSON.parse(input);
 
-topicsAndArticles = filterArticles(
+topicsAndArticles = filterTopicsAndArticles(
   topicsAndArticles,
   MIN_ARTICLE_LENGTH,
   MAX_ARTICLES,
