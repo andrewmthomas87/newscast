@@ -1,7 +1,7 @@
 // Bing News API: https://learn.microsoft.com/en-us/rest/api/cognitiveservices-bingsearch/bing-news-api-v7-reference
 
-import { Throttler } from "../utils/throttler";
-import { APIErrorResponse, APINews, APITrendingTopics } from "./types";
+import { Throttler } from '../utils/throttler';
+import { APIErrorResponse, APINews, APITrendingTopics } from './types';
 
 export class BingNewsAPI {
   public subscriptionKey: string;
@@ -14,9 +14,9 @@ export class BingNewsAPI {
 
   async fetchTrendingTopics() {
     const res = await this.throttler.run(() =>
-      fetch("https://api.bing.microsoft.com/v7.0/news/trendingtopics", {
+      fetch('https://api.bing.microsoft.com/v7.0/news/trendingtopics', {
         headers: {
-          "Ocp-Apim-Subscription-Key": this.subscriptionKey,
+          'Ocp-Apim-Subscription-Key': this.subscriptionKey,
         },
       }),
     );
@@ -25,7 +25,7 @@ export class BingNewsAPI {
     }
 
     const data: APITrendingTopics | APIErrorResponse = await res.json();
-    if (data._type !== "TrendingTopics") {
+    if (data._type !== 'TrendingTopics') {
       throw data;
     }
 
@@ -36,7 +36,7 @@ export class BingNewsAPI {
     const res = await this.throttler.run(() =>
       fetch(`https://api.bing.microsoft.com/v7.0/news/search?${query}`, {
         headers: {
-          "Ocp-Apim-Subscription-Key": this.subscriptionKey,
+          'Ocp-Apim-Subscription-Key': this.subscriptionKey,
         },
       }),
     );
@@ -45,7 +45,7 @@ export class BingNewsAPI {
     }
 
     const data: APINews | APIErrorResponse = await res.json();
-    if (data._type !== "News") {
+    if (data._type !== 'News') {
       throw data;
     }
 

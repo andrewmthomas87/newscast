@@ -1,17 +1,10 @@
-import { z } from "zod";
-import { BingNewsAPI } from "../bingNewsAPI/api";
-import { Throttler } from "../utils/throttler";
-import {
-  JobPayload,
-  JobPayloadSchema,
-  JobType,
-  claimJob,
-  markJobCompleted,
-  markJobFailed,
-} from "../db/jobs";
-import { db } from "../db";
-import { scrapeDataFromURL } from "../scrape";
-import { AI } from "../ai";
+import { z } from 'zod';
+import { AI } from '../ai';
+import { BingNewsAPI } from '../bingNewsAPI/api';
+import { db } from '../db';
+import { JobPayload, JobPayloadSchema, JobType, claimJob, markJobCompleted, markJobFailed } from '../db/jobs';
+import { scrapeDataFromURL } from '../scrape';
+import { Throttler } from '../utils/throttler';
 
 const env = z
   .object({
@@ -22,7 +15,7 @@ const env = z
     NEWSCAST_BING_NEWS_API_THROTTLE_RPS: z.coerce.number().gt(0),
     NEWSCAST_GATHER_NEWS_TOPIC_COUNT: z.coerce.number().gt(0),
     NEWSCAST_GATHER_NEWS_MARKET: z.string().optional(),
-    NEWSCAST_GATHER_NEWS_FRESHNESS: z.enum(["Day", "Week", "Month"]).optional(),
+    NEWSCAST_GATHER_NEWS_FRESHNESS: z.enum(['Day', 'Week', 'Month']).optional(),
     NEWSCAST_GATHER_NEWS_ARTICLE_MIN_LENGTH: z.coerce.number().gt(0),
     NEWSCAST_GATHER_NEWS_ARTICLE_MAX_LENGTH: z.coerce.number().gt(0),
     NEWSCAST_GATHER_NEWS_ARTICLE_MIN_COUNT: z.coerce.number().gt(0),
@@ -72,7 +65,7 @@ while (true) {
   }
 }
 
-console.log("No more gatherNews jobs");
+console.log('No more gatherNews jobs');
 
 async function gatherNews(
   ai: AI,
@@ -80,7 +73,7 @@ async function gatherNews(
   broadcastID: number,
   cfg: {
     market?: string;
-    freshness?: "Day" | "Week" | "Month";
+    freshness?: 'Day' | 'Week' | 'Month';
     topicCount: number;
     articleMinLength: number;
     articleMaxLength: number;
@@ -106,10 +99,10 @@ async function gatherNews(
 
     const query = new URLSearchParams({ q: topic.query.text });
     if (cfg.market !== undefined) {
-      query.set("mkt", cfg.market);
+      query.set('mkt', cfg.market);
     }
     if (cfg.freshness !== undefined) {
-      query.set("freshness", cfg.freshness);
+      query.set('freshness', cfg.freshness);
     }
 
     const results = await api.fetchNewsByQuery(query.toString());
@@ -134,23 +127,16 @@ async function gatherNews(
       }
 
       if (
-        !(
-          data &&
-          data.textContent.length >= cfg.articleMinLength &&
-          data.textContent.length <= cfg.articleMaxLength
-        )
+        !(data && data.textContent.length >= cfg.articleMinLength && data.textContent.length <= cfg.articleMaxLength)
       ) {
-        console.log("Data bad. Skipping...");
+        console.log('Data bad. Skipping...');
 
         continue;
       }
 
-      const isMatch = await ai.isMatch(
-        [topic.name, topic.query.text],
-        [result.name, result.description],
-      );
+      const isMatch = await ai.isMatch([topic.name, topic.query.text], [result.name, result.description]);
       if (!isMatch) {
-        console.log("AI says no match. Skipping...");
+        console.log('AI says no match. Skipping...');
 
         continue;
       }
@@ -163,11 +149,11 @@ async function gatherNews(
     if (articles.length >= cfg.articleMinCount) {
       topics.push({ topic, articles });
     } else {
-      console.log("Not enough articles. Next topic...");
+      console.log('Not enough articles. Next topic...');
     }
   }
 
-  console.log("Writing DB records...");
+  console.log('Writing DB records...');
 
   const broadcast = await db.broadcast.update({
     where: { id: broadcastID },
@@ -192,11 +178,11 @@ async function gatherNews(
     include: { topics: { include: { articles: true } } },
   });
 
-  console.log("DB records written");
+  console.log('DB records written');
 
   const payload = {
     broadcastID: broadcast.id,
-  } satisfies JobPayload["summarize"];
+  } satisfies JobPayload['summarize'];
   const job = await db.job.create({
     data: { type: JobType.summarize, payload: JSON.stringify(payload) },
   });

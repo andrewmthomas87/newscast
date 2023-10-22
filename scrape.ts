@@ -1,5 +1,5 @@
-import { Readability } from "@mozilla/readability";
-import { JSDOM } from "jsdom";
+import { Readability } from '@mozilla/readability';
+import { JSDOM } from 'jsdom';
 
 export async function scrapeDataFromURL(url: string) {
   const res = await fetch(url, { signal: AbortSignal.timeout(5000) });

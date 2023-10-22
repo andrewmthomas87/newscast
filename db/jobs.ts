@@ -1,13 +1,13 @@
-import { PrismaClient } from "@prisma/client";
-import { Schema, z } from "zod";
+import { PrismaClient } from '@prisma/client';
+import { Schema, z } from 'zod';
 
 export const JobType = {
-  gatherNews: "gatherNews",
-  summarize: "summarize",
+  gatherNews: 'gatherNews',
+  summarize: 'summarize',
 } as const;
 
 export type JobType = (typeof JobType)[keyof typeof JobType];
-export type JobStatus = "pending" | "processing" | "completed" | "failed";
+export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 export const JobPayloadSchema = {
   gatherNews: z.object({ broadcastID: z.number() }),
@@ -21,8 +21,8 @@ export type JobPayload = {
 export async function claimJob(db: PrismaClient, type: JobType) {
   return await db.$transaction(async () => {
     const job = await db.job.findFirst({
-      where: { type, status: "pending" },
-      orderBy: { createdAt: "asc" },
+      where: { type, status: 'pending' },
+      orderBy: { createdAt: 'asc' },
     });
     if (!job) {
       return undefined;
@@ -30,7 +30,7 @@ export async function claimJob(db: PrismaClient, type: JobType) {
 
     return await db.job.update({
       where: { id: job.id },
-      data: { status: "processing", startedAt: new Date() },
+      data: { status: 'processing', startedAt: new Date() },
     });
   });
 }
@@ -38,10 +38,10 @@ export async function claimJob(db: PrismaClient, type: JobType) {
 export async function markJobCompleted(db: PrismaClient, id: number) {
   await db.job.update({
     where: { id },
-    data: { status: "completed", completedAt: new Date() },
+    data: { status: 'completed', completedAt: new Date() },
   });
 }
 
 export async function markJobFailed(db: PrismaClient, id: number) {
-  await db.job.update({ where: { id }, data: { status: "failed" } });
+  await db.job.update({ where: { id }, data: { status: 'failed' } });
 }

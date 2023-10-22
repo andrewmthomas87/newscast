@@ -1,6 +1,6 @@
-import OpenAI from "openai";
-import { Throttler } from "./utils/throttler";
-import { ChatCompletionMessage } from "openai/resources/index.mjs";
+import OpenAI from 'openai';
+import { ChatCompletionMessage } from 'openai/resources/index.mjs';
+import { Throttler } from './utils/throttler';
 
 export class AI {
   public openai: OpenAI;
@@ -16,13 +16,12 @@ export class AI {
   async isMatch(search: string[], result: string[]) {
     const messages = [
       {
-        role: "user",
+        role: 'user',
         content: `# Search\n\n${search}\n\n# Result\n\n${result}`,
       },
       {
-        role: "user",
-        content:
-          'Does the result match the search? Simply respond "yes" or "no".',
+        role: 'user',
+        content: 'Does the result match the search? Simply respond "yes" or "no".',
       },
     ] satisfies ChatCompletionMessage[];
 
@@ -35,24 +34,23 @@ export class AI {
     );
 
     const content = completion.choices[0].message.content;
-    return content && content.toLowerCase() === "yes";
+    return content && content.toLowerCase() === 'yes';
   }
 
   async summarizeArticle(title: string, content: string) {
     const article = `${title}\n\n${content}`;
     const messages = [
       {
-        role: "system",
-        content:
-          "You summarize news articles. Be concise. Retain meaningful details.",
+        role: 'system',
+        content: 'You summarize news articles. Be concise. Retain meaningful details.',
       },
       {
-        role: "user",
+        role: 'user',
         content: article,
       },
       {
-        role: "user",
-        content: "Summarize the article in 5-10 bullet points.",
+        role: 'user',
+        content: 'Summarize the article in 5-10 bullet points.',
       },
     ] satisfies ChatCompletionMessage[];
 
@@ -66,7 +64,7 @@ export class AI {
 
     const result = completion.choices[0].message.content;
     if (!result) {
-      throw new Error("expected completion content");
+      throw new Error('expected completion content');
     }
 
     return result;
@@ -75,20 +73,19 @@ export class AI {
   async mergeSummaries(summaries: string[]) {
     const messages = [
       {
-        role: "system",
-        content:
-          "You merge several lists of bullet points into a single list. Retain as much detail as possible.",
+        role: 'system',
+        content: 'You merge several lists of bullet points into a single list. Retain as much detail as possible.',
       },
       ...summaries.map(
         (summary) =>
           ({
-            role: "user",
+            role: 'user',
             content: summary,
           }) satisfies ChatCompletionMessage,
       ),
       {
-        role: "user",
-        content: "Merge the lists into a single list of 5-10 bullet points.",
+        role: 'user',
+        content: 'Merge the lists into a single list of 5-10 bullet points.',
       },
     ] satisfies ChatCompletionMessage[];
 
@@ -102,7 +99,7 @@ export class AI {
 
     const result = completion.choices[0].message.content;
     if (!result) {
-      throw new Error("expected completion content");
+      throw new Error('expected completion content');
     }
 
     return result;

@@ -1,5 +1,5 @@
-import { db } from "../db";
-import { JobType } from "../db/jobs";
+import { db } from '../db';
+import { JobType } from '../db/jobs';
 
 const { broadcast, job } = await db.$transaction(async () => {
   const broadcast = await db.broadcast.create({});

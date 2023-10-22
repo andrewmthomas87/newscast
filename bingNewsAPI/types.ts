@@ -1,5 +1,5 @@
 export type APIErrorResponse = {
-  _type: "ErrorResponse";
+  _type: 'ErrorResponse';
   errors: Error[];
 };
 
@@ -13,12 +13,12 @@ export type APIError = {
 };
 
 export type APITrendingTopics = {
-  _type: "TrendingTopics";
+  _type: 'TrendingTopics';
   value: APITopic[];
 };
 
 export type APINews = {
-  _type: "News";
+  _type: 'News';
   id: string;
   readLink: string;
   relatedTopics: unknown;
@@ -58,6 +58,6 @@ export type APIImage = {
 };
 
 export type APIOrganization = {
-  _type: "Organization";
+  _type: 'Organization';
   name: string;
 };

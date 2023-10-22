@@ -1,15 +1,9 @@
-import { Prisma } from "@prisma/client";
-import { AI } from "../ai";
-import { db } from "../db";
-import { Throttler } from "../utils/throttler";
-import {
-  JobPayloadSchema,
-  JobType,
-  claimJob,
-  markJobCompleted,
-  markJobFailed,
-} from "../db/jobs";
-import { z } from "zod";
+import { Prisma } from '@prisma/client';
+import { z } from 'zod';
+import { AI } from '../ai';
+import { db } from '../db';
+import { JobPayloadSchema, JobType, claimJob, markJobCompleted, markJobFailed } from '../db/jobs';
+import { Throttler } from '../utils/throttler';
 
 const env = z
   .object({
@@ -48,7 +42,7 @@ while (true) {
   }
 }
 
-console.log("No more summarize jobs");
+console.log('No more summarize jobs');
 
 async function summarize(ai: AI, broadcastID: number) {
   const broadcast = await db.broadcast.findUniqueOrThrow({
@@ -64,15 +58,12 @@ async function summarize(ai: AI, broadcastID: number) {
     const summaries = [];
     for (const article of topic.articles) {
       console.log(`Article: ${article.name}, ${article.url}`);
-      console.log("Generating summary...");
+      console.log('Generating summary...');
 
-      const summary = await ai.summarizeArticle(
-        article.name,
-        article.textContent,
-      );
+      const summary = await ai.summarizeArticle(article.name, article.textContent);
       summaries.push(summary);
 
-      console.log("Summary generated");
+      console.log('Summary generated');
 
       articleSummaryCreateInputs.push({
         article: { connect: { id: article.id } },
@@ -81,7 +72,7 @@ async function summarize(ai: AI, broadcastID: number) {
       });
     }
 
-    console.log("Generating topic summary...");
+    console.log('Generating topic summary...');
 
     let topicSummary;
     if (summaries.length === 1) {
@@ -90,7 +81,7 @@ async function summarize(ai: AI, broadcastID: number) {
       topicSummary = await ai.mergeSummaries(summaries);
     }
 
-    console.log("Topic summary generated");
+    console.log('Topic summary generated');
 
     topicSummaryCreateInputs.push({
       topic: { connect: { id: topic.id } },
@@ -99,16 +90,14 @@ async function summarize(ai: AI, broadcastID: number) {
     });
   }
 
-  console.log("Writing DB records...");
+  console.log('Writing DB records...');
 
   const summaries = await db.$transaction([
-    ...articleSummaryCreateInputs.map((data) =>
-      db.articleSummary.create({ data }),
-    ),
+    ...articleSummaryCreateInputs.map((data) => db.articleSummary.create({ data })),
     ...topicSummaryCreateInputs.map((data) => db.topicSummary.create({ data })),
   ]);
 
-  console.log("DB records written");
+  console.log('DB records written');
 
   console.log(`Created ${summaries.length} article & topic summaries`);
 }
