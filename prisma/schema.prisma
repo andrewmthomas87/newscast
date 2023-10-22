@@ -17,9 +17,16 @@ model Job {
   type    String
   payload String
 
-  status      String   @default("pending")
+  status      String    @default("pending")
   startedAt   DateTime?
   completedAt DateTime?
+}
+
+model Broadcast {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  topics Topic[]
 }
 
 model Topic {
@@ -31,7 +38,9 @@ model Topic {
 
   json String
 
-  articles Article[]
+  broadcast   Broadcast @relation(fields: [broadcastID], references: [id])
+  broadcastID Int
+  articles    Article[]
 }
 
 model Article {
@@ -44,6 +53,15 @@ model Article {
   data        String
   textContent String
 
-  topic   Topic @relation(fields: [topicID], references: [id])
-  topicID Int
+  topic            Topic            @relation(fields: [topicID], references: [id])
+  topicID          Int
+  articleSummaries ArticleSummary[]
+}
+
+model ArticleSummary {
+  article   Article @relation(fields: [articleID], references: [id])
+  articleID Int     @id
+
+  model String
+  summary String
 }

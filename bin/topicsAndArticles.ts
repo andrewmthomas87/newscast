@@ -45,10 +45,10 @@ topicsAndArticles = filterTopicsAndArticles(
   MAX_ARTICLES,
 );
 
-const topics = await db.$transaction(
-  topicsAndArticles.map(({ topic, articles }) =>
-    db.topic.create({
-      data: {
+const broadcast = await db.broadcast.create({
+  data: {
+    topics: {
+      create: topicsAndArticles.map(({ topic, articles }) => ({
         name: topic.name,
         query: topic.query.text,
         json: JSON.stringify(topic),
@@ -61,26 +61,23 @@ const topics = await db.$transaction(
             textContent: data?.textContent || "",
           })),
         },
-      },
-    }),
-  ),
+      })),
+    },
+  },
+  include: { topics: { include: { articles: true } } },
+});
+
+const articles = broadcast.topics.flatMap(({ articles }) => articles);
+
+console.log(
+  `Created ${broadcast.topics.length} topics, ${articles.length} articles`,
 );
 
-const articleIDs = (
-  await db.topic.findMany({
-    select: { articles: { select: { id: true } } },
-    where: { id: { in: topics.map((topic) => topic.id) } },
-  })
-).flatMap((topic) => topic.articles.map((article) => article.id));
+await db.job.create({
+  data: {
+    type: "summarize",
+    payload: JSON.stringify({ broadcastID: broadcast.id }),
+  },
+});
 
-console.log(`added ${topics.length} topics, ${articleIDs.length} articles`);
-
-const jobs = await db.$transaction(
-  articleIDs.map((id) =>
-    db.job.create({
-      data: { type: "summarize", payload: JSON.stringify({ id }) },
-    }),
-  ),
-);
-
-console.log(`queued ${jobs.length} summarize jobs`);
+console.log(`Queued summarize job for broadcast ${broadcast.id}`);

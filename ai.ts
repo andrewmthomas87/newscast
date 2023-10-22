@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import { Throttler } from "./utils/throttler";
-import { Article } from "./articles";
 import { ChatCompletionMessage } from "openai/resources/index.mjs";
 
 export class AI {
@@ -14,8 +13,8 @@ export class AI {
     this.throttler = throttler;
   }
 
-  async summarizeArticle({ result, data }: Article) {
-    const articleContent = `${result.name}\n\n${data?.textContent}`;
+  async summarizeArticle(title: string, content: string) {
+    const article = `${title}\n\n${content}`;
     const messages = [
       {
         role: "system",
@@ -24,7 +23,7 @@ export class AI {
       },
       {
         role: "user",
-        content: articleContent,
+        content: article,
       },
       {
         role: "user",
@@ -44,6 +43,6 @@ export class AI {
       }),
     );
 
-    return { messages, completion };
+    return completion.choices[0].message.content;
   }
 }
