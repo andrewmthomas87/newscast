@@ -13,6 +13,31 @@ export class AI {
     this.throttler = throttler;
   }
 
+  async isMatch(search: string[], result: string[]) {
+    const messages = [
+      {
+        role: "user",
+        content: `# Search\n\n${search}\n\n# Result\n\n${result}`,
+      },
+      {
+        role: "user",
+        content:
+          'Does the result match the search? Simply respond "yes" or "no".',
+      },
+    ] satisfies ChatCompletionMessage[];
+
+    const completion = await this.throttler.run(() =>
+      this.openai.chat.completions.create({
+        model: this.model,
+        messages,
+        max_tokens: 1,
+      }),
+    );
+
+    const content = completion.choices[0].message.content;
+    return content && content.toLowerCase() === "yes";
+  }
+
   async summarizeArticle(title: string, content: string) {
     const article = `${title}\n\n${content}`;
     const messages = [
@@ -35,11 +60,7 @@ export class AI {
       this.openai.chat.completions.create({
         model: this.model,
         messages,
-        temperature: 1,
         max_tokens: 512,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
       }),
     );
 

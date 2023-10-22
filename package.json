@@ -1,4 +1,4 @@
-{ "dependencies": { "@mozilla/readability": "^0.4.4", "@prisma/client": "^5.4.2", "jsdom": "^22.1.0", "openai": "^4.12.4", "prisma": "^5.4.2" }, "name": "newscast", "module": "index.ts", "type": "module", "devDependencies": {
+{ "dependencies": { "@mozilla/readability": "^0.4.4", "@prisma/client": "^5.4.2", "jsdom": "^22.1.0", "openai": "^4.12.4", "prisma": "^5.4.2", "zod": "^3.22.4" }, "name": "newscast", "module": "index.ts", "type": "module", "devDependencies": {
   "@types/jsdom": "^21.1.4",
   "bun-types": "latest"
 }, "peerDependencies": {

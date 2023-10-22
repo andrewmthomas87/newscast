@@ -1,90 +1,69 @@
-import { Job, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { AI } from "../ai";
 import { db } from "../db";
 import { Throttler } from "../utils/throttler";
+import {
+  JobPayloadSchema,
+  JobType,
+  claimJob,
+  markJobCompleted,
+  markJobFailed,
+} from "../db/jobs";
+import { z } from "zod";
 
-const OPENAI_API_KEY = process.env.NEWSCAST_OPENAI_API_KEY;
-const OPENAI_API_MODEL = process.env.NEWSCAST_OPENAI_API_MODEL;
-const OPENAI_API_THROTTLE_RPS = parseFloat(
-  process.env.NEWSCAST_OPENAI_API_THROTTLE_RPS || "",
-);
-
-if (!OPENAI_API_KEY) {
-  throw new Error("expected env NEWSCAST_OPENAI_API_KEY (string)");
-} else if (!OPENAI_API_MODEL) {
-  throw new Error("expected env NEWSCAST_OPENAI_API_MODEL (string)");
-} else if (isNaN(OPENAI_API_THROTTLE_RPS)) {
-  throw new Error("expected env NEWSCAST_OPENAI_API_THROTTLE_RPS (number)");
-}
+const env = z
+  .object({
+    NEWSCAST_OPENAI_API_KEY: z.string().min(1),
+    NEWSCAST_OPENAI_API_MODEL: z.string().min(1),
+    NEWSCAST_OPENAI_API_THROTTLE_RPS: z.coerce.number().gt(0),
+  })
+  .parse(process.env);
 
 const ai = new AI(
-  OPENAI_API_KEY,
-  OPENAI_API_MODEL,
-  new Throttler(OPENAI_API_THROTTLE_RPS),
+  env.NEWSCAST_OPENAI_API_KEY,
+  env.NEWSCAST_OPENAI_API_MODEL,
+  new Throttler(env.NEWSCAST_OPENAI_API_THROTTLE_RPS),
 );
 
 while (true) {
-  const job = await db.$transaction(async () => {
-    const job = await db.job.findFirst({
-      where: { type: "summarize", status: "pending" },
-      orderBy: { createdAt: "desc" },
-    });
-    if (!job) {
-      return undefined;
-    }
-
-    return await db.job.update({
-      where: { id: job.id },
-      data: { status: "processing", startedAt: new Date() },
-    });
-  });
-
+  const job = await claimJob(db, JobType.summarize);
   if (!job) {
     break;
   }
 
-  console.log(`Starting job ${job.id}`);
+  console.log(`Claimed summarize job ${job.id}`);
 
   try {
-    await runSummarizeJob(job);
+    const payload = JobPayloadSchema.summarize.parse(JSON.parse(job.payload));
+    await summarize(ai, payload.broadcastID);
+    await markJobCompleted(db, job.id);
 
-    await db.job.update({
-      where: { id: job.id },
-      data: { status: "completed", completedAt: new Date() },
-    });
-
-    console.log(`Completed job ${job.id}`);
+    console.log(`Completed summarize job ${job.id}`);
   } catch (ex) {
-    await db.job.update({ where: { id: job.id }, data: { status: "failed" } });
-
     console.error(ex);
-    console.log(`Failed job ${job.id}`);
+
+    await markJobFailed(db, job.id);
+
+    console.log(`Failed summarize job ${job.id}`);
   }
 }
 
 console.log("No more summarize jobs");
 
-async function runSummarizeJob(job: Job) {
-  const data: unknown = JSON.parse(job.payload);
-  if (
-    !(
-      data &&
-      typeof data === "object" &&
-      "broadcastID" in data &&
-      typeof data.broadcastID === "number"
-    )
-  ) {
-    throw new Error("invalid summarize payload");
-  }
-
+async function summarize(ai: AI, broadcastID: number) {
   const broadcast = await db.broadcast.findUniqueOrThrow({
-    where: { id: data.broadcastID },
+    where: { id: broadcastID },
     include: { topics: { include: { articles: true } } },
   });
 
   const datas: Prisma.ArticleSummaryCreateInput[] = [];
   for (const topic of broadcast.topics) {
+    console.log(`Topic: ${topic.name}, ${topic.query}`);
+
     for (const article of topic.articles) {
+      console.log(`Article: ${article.name}, ${article.url}`);
+      console.log("Generating summary...");
+
       const summary = await ai.summarizeArticle(
         article.name,
         article.textContent,
@@ -92,6 +71,8 @@ async function runSummarizeJob(job: Job) {
       if (!summary) {
         throw new Error("unexpected empty summary");
       }
+
+      console.log("Summary generated");
 
       datas.push({
         article: { connect: { id: article.id } },
@@ -101,9 +82,13 @@ async function runSummarizeJob(job: Job) {
     }
   }
 
+  console.log("Writing DB records...");
+
   const summaries = await db.$transaction(
     datas.map((data) => db.articleSummary.create({ data })),
   );
+
+  console.log("DB records written");
 
   console.log(`Created ${summaries.length} article summaries`);
 }

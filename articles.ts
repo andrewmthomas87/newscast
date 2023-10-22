@@ -1,5 +1,5 @@
 import { BingNewsAPI } from "./bingNewsAPI/api";
-import { scrapeArticleFromURL } from "./scrape";
+import { scrapeDataFromURL } from "./scrape";
 
 export async function getTrendingTopicsAndArticles(
   api: BingNewsAPI,
@@ -34,7 +34,7 @@ export async function getTrendingTopicsAndArticles(
         results.map(async (result) => {
           let data;
           try {
-            data = await scrapeArticleFromURL(result.url);
+            data = await scrapeDataFromURL(result.url);
           } catch (ex) {
             console.error(ex);
 
