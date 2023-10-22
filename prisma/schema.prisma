@@ -38,9 +38,10 @@ model Topic {
 
   json String
 
-  broadcast   Broadcast @relation(fields: [broadcastID], references: [id])
-  broadcastID Int
-  articles    Article[]
+  broadcast    Broadcast     @relation(fields: [broadcastID], references: [id])
+  broadcastID  Int
+  articles     Article[]
+  topicSummary TopicSummary?
 }
 
 model Article {
@@ -53,15 +54,23 @@ model Article {
   data        String
   textContent String
 
-  topic            Topic            @relation(fields: [topicID], references: [id])
-  topicID          Int
-  articleSummaries ArticleSummary[]
+  topic          Topic           @relation(fields: [topicID], references: [id])
+  topicID        Int
+  articleSummary ArticleSummary?
+}
+
+model TopicSummary {
+  topic   Topic @relation(fields: [topicID], references: [id])
+  topicID Int   @id
+
+  model   String
+  summary String
 }
 
 model ArticleSummary {
   article   Article @relation(fields: [articleID], references: [id])
   articleID Int     @id
 
-  model String
+  model   String
   summary String
 }

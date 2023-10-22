@@ -56,10 +56,12 @@ async function summarize(ai: AI, broadcastID: number) {
     include: { topics: { include: { articles: true } } },
   });
 
-  const datas: Prisma.ArticleSummaryCreateInput[] = [];
+  const articleSummaryCreateInputs: Prisma.ArticleSummaryCreateInput[] = [];
+  const topicSummaryCreateInputs: Prisma.TopicSummaryCreateInput[] = [];
   for (const topic of broadcast.topics) {
     console.log(`Topic: ${topic.name}, ${topic.query}`);
 
+    const summaries = [];
     for (const article of topic.articles) {
       console.log(`Article: ${article.name}, ${article.url}`);
       console.log("Generating summary...");
@@ -68,27 +70,45 @@ async function summarize(ai: AI, broadcastID: number) {
         article.name,
         article.textContent,
       );
-      if (!summary) {
-        throw new Error("unexpected empty summary");
-      }
+      summaries.push(summary);
 
       console.log("Summary generated");
 
-      datas.push({
+      articleSummaryCreateInputs.push({
         article: { connect: { id: article.id } },
         model: ai.model,
         summary,
       });
     }
+
+    console.log("Generating topic summary...");
+
+    let topicSummary;
+    if (summaries.length === 1) {
+      topicSummary = summaries[0];
+    } else {
+      topicSummary = await ai.mergeSummaries(summaries);
+    }
+
+    console.log("Topic summary generated");
+
+    topicSummaryCreateInputs.push({
+      topic: { connect: { id: topic.id } },
+      model: ai.model,
+      summary: topicSummary,
+    });
   }
 
   console.log("Writing DB records...");
 
-  const summaries = await db.$transaction(
-    datas.map((data) => db.articleSummary.create({ data })),
-  );
+  const summaries = await db.$transaction([
+    ...articleSummaryCreateInputs.map((data) =>
+      db.articleSummary.create({ data }),
+    ),
+    ...topicSummaryCreateInputs.map((data) => db.topicSummary.create({ data })),
+  ]);
 
   console.log("DB records written");
 
-  console.log(`Created ${summaries.length} article summaries`);
+  console.log(`Created ${summaries.length} article & topic summaries`);
 }

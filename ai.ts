@@ -44,7 +44,7 @@ export class AI {
       {
         role: "system",
         content:
-          "You are summarizing news articles. Be concise. Retain meaningful details.",
+          "You summarize news articles. Be concise. Retain meaningful details.",
       },
       {
         role: "user",
@@ -64,6 +64,47 @@ export class AI {
       }),
     );
 
-    return completion.choices[0].message.content;
+    const result = completion.choices[0].message.content;
+    if (!result) {
+      throw new Error("expected completion content");
+    }
+
+    return result;
+  }
+
+  async mergeSummaries(summaries: string[]) {
+    const messages = [
+      {
+        role: "system",
+        content:
+          "You merge several lists of bullet points into a single list. Retain as much detail as possible.",
+      },
+      ...summaries.map(
+        (summary) =>
+          ({
+            role: "user",
+            content: summary,
+          }) satisfies ChatCompletionMessage,
+      ),
+      {
+        role: "user",
+        content: "Merge the lists into a single list of 5-10 bullet points.",
+      },
+    ] satisfies ChatCompletionMessage[];
+
+    const completion = await this.throttler.run(() =>
+      this.openai.chat.completions.create({
+        model: this.model,
+        messages,
+        max_tokens: 512,
+      }),
+    );
+
+    const result = completion.choices[0].message.content;
+    if (!result) {
+      throw new Error("expected completion content");
+    }
+
+    return result;
   }
 }
