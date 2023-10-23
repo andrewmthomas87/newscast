@@ -2,7 +2,7 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { AI } from '../ai';
 import { db } from '../db';
-import { JobPayloadSchema, JobType, claimJob, markJobCompleted, markJobFailed } from '../db/jobs';
+import { JobPayload, JobPayloadSchema, JobType, claimJob, markJobCompleted, markJobFailed } from '../db/jobs';
 import { Throttler } from '../utils/throttler';
 
 const env = z
@@ -82,5 +82,9 @@ async function generateBroadcastText(ai: AI, db: PrismaClient, broadcastID: numb
 
   console.log('DB records created');
 
+  const payload = { broadcastID: broadcast.id } satisfies JobPayload['generateBroadcastAudio'];
+  const job = await db.job.create({ data: { type: JobType.generateBroadcastAudio, payload: JSON.stringify(payload) } });
+
   console.log(`Created ${topicSegments.length} topic segments for broadcast ${broadcast.id}`);
+  console.log(`Queued generateBroadcastAudio job ${job.id}`);
 }

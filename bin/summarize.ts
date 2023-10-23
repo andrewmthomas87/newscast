@@ -100,12 +100,8 @@ async function summarize(ai: AI, db: PrismaClient, broadcastID: number) {
 
   console.log('DB records written');
 
-  const payload = {
-    broadcastID: broadcast.id,
-  } satisfies JobPayload['generateBroadcastText'];
-  const job = await db.job.create({
-    data: { type: JobType.generateBroadcastText, payload: JSON.stringify(payload) },
-  });
+  const payload = { broadcastID: broadcast.id } satisfies JobPayload['generateBroadcastText'];
+  const job = await db.job.create({ data: { type: JobType.generateBroadcastText, payload: JSON.stringify(payload) } });
 
   console.log(`Created ${summaries.length} article & topic summaries for broadcast ${broadcast.id}`);
   console.log(`Queued generateBroadcastText job ${job.id}`);

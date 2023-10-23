@@ -1,10 +1,10 @@
 import { db } from '../db';
-import { JobType } from '../db/jobs';
+import { JobPayload, JobType } from '../db/jobs';
 
 const { broadcast, job } = await db.$transaction(async () => {
   const broadcast = await db.broadcast.create({});
 
-  const payload = { broadcastID: broadcast.id };
+  const payload = { broadcastID: broadcast.id } satisfies JobPayload['gatherNews'];
   const job = await db.job.create({
     data: { type: JobType.gatherNews, payload: JSON.stringify(payload) },
   });

@@ -182,12 +182,8 @@ async function gatherNews(
 
   console.log('DB records written');
 
-  const payload = {
-    broadcastID: broadcast.id,
-  } satisfies JobPayload['summarize'];
-  const job = await db.job.create({
-    data: { type: JobType.summarize, payload: JSON.stringify(payload) },
-  });
+  const payload = { broadcastID: broadcast.id } satisfies JobPayload['summarize'];
+  const job = await db.job.create({ data: { type: JobType.summarize, payload: JSON.stringify(payload) } });
 
   console.log(
     `Created ${broadcast.topics.length} topics, ${broadcast.topics.reduce(
