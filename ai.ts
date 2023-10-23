@@ -102,10 +102,10 @@ export class AI {
     const messages: OpenAI.ChatCompletionMessage[] = [
       {
         role: 'system',
-        content: 'You are a news reporter. You are reporting on a story. Remember, stick to the facts.',
+        content: 'You are a news reporter. You are reporting on a story. Stick to the facts.',
       },
-      { role: 'user', content: `# The story\n\n${summary}` },
-      { role: 'user', content: 'Deliver a brief introduction (1 sentence).' },
+      { role: 'user', content: `# Story\n\n${summary}` },
+      { role: 'user', content: 'First, deliver a brief introductory statement to the story (1 sentence).' },
     ];
 
     let completion = await this.throttler.run(() =>
@@ -121,7 +121,10 @@ export class AI {
     }
 
     messages.push(completion.choices[0].message);
-    messages.push({ role: 'user', content: "Follow up with a summary of what's known (30 seconds)." });
+    messages.push({
+      role: 'user',
+      content: "Next, deliver a summary of the story (30 seconds). Don't repeat the introduction.",
+    });
 
     completion = await this.throttler.run(() =>
       this.openai.chat.completions.create({
@@ -136,7 +139,7 @@ export class AI {
     }
 
     messages.push(completion.choices[0].message);
-    messages.push({ role: 'user', content: 'End with a brief conclusion (1 sentence).' });
+    messages.push({ role: 'user', content: 'Finally, deliver a brief concluding statement (1 sentence).' });
 
     completion = await this.throttler.run(() =>
       this.openai.chat.completions.create({
