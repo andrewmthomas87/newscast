@@ -4,6 +4,7 @@ import { Schema, z } from 'zod';
 export const JobType = {
   gatherNews: 'gatherNews',
   summarize: 'summarize',
+  generateBroadcastText: 'generateBroadcastText',
 } as const;
 
 export type JobType = (typeof JobType)[keyof typeof JobType];
@@ -12,6 +13,7 @@ export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed';
 export const JobPayloadSchema = {
   gatherNews: z.object({ broadcastID: z.number() }),
   summarize: z.object({ broadcastID: z.number() }),
+  generateBroadcastText: z.object({ broadcastID: z.number() }),
 } satisfies Record<JobType, Schema>;
 
 export type JobPayload = {

@@ -1,8 +1,8 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { AI } from '../ai';
 import { db } from '../db';
-import { JobPayloadSchema, JobType, claimJob, markJobCompleted, markJobFailed } from '../db/jobs';
+import { JobPayload, JobPayloadSchema, JobType, claimJob, markJobCompleted, markJobFailed } from '../db/jobs';
 import { Throttler } from '../utils/throttler';
 
 const env = z
@@ -29,7 +29,7 @@ while (true) {
 
   try {
     const payload = JobPayloadSchema.summarize.parse(JSON.parse(job.payload));
-    await summarize(ai, payload.broadcastID);
+    await summarize(ai, db, payload.broadcastID);
     await markJobCompleted(db, job.id);
 
     console.log(`Completed summarize job ${job.id}`);
@@ -44,7 +44,7 @@ while (true) {
 
 console.log('No more summarize jobs');
 
-async function summarize(ai: AI, broadcastID: number) {
+async function summarize(ai: AI, db: PrismaClient, broadcastID: number) {
   const broadcast = await db.broadcast.findUniqueOrThrow({
     where: { id: broadcastID },
     include: { topics: { include: { articles: true } } },
@@ -63,6 +63,7 @@ async function summarize(ai: AI, broadcastID: number) {
       const summary = await ai.summarizeArticle(article.name, article.textContent);
       summaries.push(summary);
 
+      console.log(summary);
       console.log('Summary generated');
 
       articleSummaryCreateInputs.push({
@@ -99,5 +100,13 @@ async function summarize(ai: AI, broadcastID: number) {
 
   console.log('DB records written');
 
-  console.log(`Created ${summaries.length} article & topic summaries`);
+  const payload = {
+    broadcastID: broadcast.id,
+  } satisfies JobPayload['generateBroadcastText'];
+  const job = await db.job.create({
+    data: { type: JobType.generateBroadcastText, payload: JSON.stringify(payload) },
+  });
+
+  console.log(`Created ${summaries.length} article & topic summaries for broadcast ${broadcast.id}`);
+  console.log(`Queued generateBroadcastText job ${job.id}`);
 }

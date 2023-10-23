@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import { ChatCompletionMessage } from 'openai/resources/index.mjs';
 import { Throttler } from './utils/throttler';
 
 export class AI {
@@ -14,7 +13,7 @@ export class AI {
   }
 
   async isMatch(search: string[], result: string[]) {
-    const messages = [
+    const messages: OpenAI.ChatCompletionMessage[] = [
       {
         role: 'user',
         content: `# Search\n\n${search}\n\n# Result\n\n${result}`,
@@ -23,7 +22,7 @@ export class AI {
         role: 'user',
         content: 'Does the result match the search? Simply respond "yes" or "no".',
       },
-    ] satisfies ChatCompletionMessage[];
+    ];
 
     const completion = await this.throttler.run(() =>
       this.openai.chat.completions.create({
@@ -38,21 +37,20 @@ export class AI {
   }
 
   async summarizeArticle(title: string, content: string) {
-    const article = `${title}\n\n${content}`;
-    const messages = [
+    const messages: OpenAI.ChatCompletionMessage[] = [
       {
         role: 'system',
         content: 'You summarize news articles. Be concise. Retain meaningful details.',
       },
       {
         role: 'user',
-        content: article,
+        content: `${title}\n\n${content}`,
       },
       {
         role: 'user',
         content: 'Summarize the article in 5-10 bullet points.',
       },
-    ] satisfies ChatCompletionMessage[];
+    ];
 
     const completion = await this.throttler.run(() =>
       this.openai.chat.completions.create({
@@ -61,7 +59,6 @@ export class AI {
         max_tokens: 512,
       }),
     );
-
     const result = completion.choices[0].message.content;
     if (!result) {
       throw new Error('expected completion content');
@@ -71,23 +68,20 @@ export class AI {
   }
 
   async mergeSummaries(summaries: string[]) {
-    const messages = [
+    const messages: OpenAI.ChatCompletionMessage[] = [
       {
         role: 'system',
         content: 'You merge several lists of bullet points into a single list. Retain as much detail as possible.',
       },
-      ...summaries.map(
-        (summary) =>
-          ({
-            role: 'user',
-            content: summary,
-          }) satisfies ChatCompletionMessage,
-      ),
+      ...summaries.map<OpenAI.ChatCompletionMessage>((summary) => ({
+        role: 'user',
+        content: summary,
+      })),
       {
         role: 'user',
         content: 'Merge the lists into a single list of 5-10 bullet points.',
       },
-    ] satisfies ChatCompletionMessage[];
+    ];
 
     const completion = await this.throttler.run(() =>
       this.openai.chat.completions.create({
@@ -96,12 +90,66 @@ export class AI {
         max_tokens: 512,
       }),
     );
-
     const result = completion.choices[0].message.content;
     if (!result) {
       throw new Error('expected completion content');
     }
 
     return result;
+  }
+
+  async generateSegment(summary: string) {
+    const messages: OpenAI.ChatCompletionMessage[] = [
+      {
+        role: 'system',
+        content: 'You are a news reporter. You are reporting on a story. Remember, stick to the facts.',
+      },
+      { role: 'user', content: `# The story\n\n${summary}` },
+      { role: 'user', content: 'Deliver a brief introduction (1 sentence).' },
+    ];
+
+    let completion = await this.throttler.run(() =>
+      this.openai.chat.completions.create({
+        model: this.model,
+        messages,
+        max_tokens: 64,
+      }),
+    );
+    const introduction = completion.choices[0].message.content;
+    if (!introduction) {
+      throw new Error('expected completion content');
+    }
+
+    messages.push(completion.choices[0].message);
+    messages.push({ role: 'user', content: "Follow up with a summary of what's known (30 seconds)." });
+
+    completion = await this.throttler.run(() =>
+      this.openai.chat.completions.create({
+        model: this.model,
+        messages,
+        max_tokens: 256,
+      }),
+    );
+    const body = completion.choices[0].message.content;
+    if (!body) {
+      throw new Error('expected completion content');
+    }
+
+    messages.push(completion.choices[0].message);
+    messages.push({ role: 'user', content: 'End with a brief conclusion (1 sentence).' });
+
+    completion = await this.throttler.run(() =>
+      this.openai.chat.completions.create({
+        model: this.model,
+        messages,
+        max_tokens: 64,
+      }),
+    );
+    const conclusion = completion.choices[0].message.content;
+    if (!conclusion) {
+      throw new Error('expected completion content');
+    }
+
+    return { introduction, body, conclusion };
   }
 }

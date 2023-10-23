@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { AI } from '../ai';
 import { BingNewsAPI } from '../bingNewsAPI/api';
@@ -44,7 +45,7 @@ while (true) {
 
   try {
     const payload = JobPayloadSchema.gatherNews.parse(JSON.parse(job.payload));
-    await gatherNews(ai, api, payload.broadcastID, {
+    await gatherNews(ai, api, db, payload.broadcastID, {
       market: env.NEWSCAST_GATHER_NEWS_MARKET,
       freshness: env.NEWSCAST_GATHER_NEWS_FRESHNESS,
       topicCount: env.NEWSCAST_GATHER_NEWS_TOPIC_COUNT,
@@ -70,6 +71,7 @@ console.log('No more gatherNews jobs');
 async function gatherNews(
   ai: AI,
   api: BingNewsAPI,
+  db: PrismaClient,
   broadcastID: number,
   cfg: {
     market?: string;
