@@ -73,6 +73,8 @@ async function generateBroadcastText(ai: AI, db: PrismaClient, broadcastID: numb
       introduction: segment.introduction,
       body: segment.body,
       conclusion: segment.conclusion,
+      prevTransition: { connect: { prevTopicSegmentTopicID: topic.id } },
+      nextTransition: { connect: { nextTopicSegmentTopicID: topic.id } }
     });
   }
 
@@ -82,9 +84,9 @@ async function generateBroadcastText(ai: AI, db: PrismaClient, broadcastID: numb
 
   console.log('DB records created');
 
-  const payload = { broadcastID: broadcast.id } satisfies JobPayload['generateBroadcastAudio'];
-  const job = await db.job.create({ data: { type: JobType.generateBroadcastAudio, payload: JSON.stringify(payload) } });
+  const payload = { broadcastID: broadcast.id } satisfies JobPayload['generateTransitions'];
+  const job = await db.job.create({ data: { type: JobType.generateTransitions, payload: JSON.stringify(payload) } });
 
   console.log(`Created ${topicSegments.length} topic segments for broadcast ${broadcast.id}`);
-  console.log(`Queued generateBroadcastAudio job ${job.id}`);
+  console.log(`Queued generateTransitions job ${job.id}`);
 }

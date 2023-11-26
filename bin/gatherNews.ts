@@ -45,6 +45,13 @@ while (true) {
 
   try {
     const payload = JobPayloadSchema.gatherNews.parse(JSON.parse(job.payload));
+    console.log("here", "market", env.NEWSCAST_GATHER_NEWS_MARKET,
+    "freshness", env.NEWSCAST_GATHER_NEWS_FRESHNESS,
+    "topicCount", env.NEWSCAST_GATHER_NEWS_TOPIC_COUNT,
+    "articleMinLength", env.NEWSCAST_GATHER_NEWS_ARTICLE_MIN_LENGTH,
+    "articleMaxLength", env.NEWSCAST_GATHER_NEWS_ARTICLE_MAX_LENGTH,
+    "articleMinCount", env.NEWSCAST_GATHER_NEWS_ARTICLE_MIN_COUNT,
+    "articleMaxCount", env.NEWSCAST_GATHER_NEWS_ARTICLE_MAX_COUNT,)
     await gatherNews(ai, api, db, payload.broadcastID, {
       market: env.NEWSCAST_GATHER_NEWS_MARKET,
       freshness: env.NEWSCAST_GATHER_NEWS_FRESHNESS,
@@ -83,12 +90,14 @@ async function gatherNews(
     articleMaxCount: number;
   },
 ) {
+  console.log("current")
   await db.broadcast.findUniqueOrThrow({
     where: { id: broadcastID },
   });
 
+  console.log("current1")
   const allTopics = await api.fetchTrendingTopics();
-
+  console.log("current2")
   console.log(`Fetched ${allTopics.length} topics`);
 
   const topics = [];
@@ -135,7 +144,7 @@ async function gatherNews(
 
         continue;
       }
-
+      ///////////
       const isMatch = await ai.isMatch([topic.name, topic.query.text], [result.name, result.description]);
       if (!isMatch) {
         console.log('AI says no match. Skipping...');
