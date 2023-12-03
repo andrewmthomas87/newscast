@@ -51,8 +51,8 @@ console.log('No more combine broadcast jobs');
 async function generateCombinedBroadcast(ai: AI, db: PrismaClient, broadcastID: number) {
   try {
 
-    const topicTransitions = await generateTransitions(ai, db, broadcastID);
-    console.log("NECESSARY:", topicTransitions)
+ //   const topicTransitions = await generateTransitions(ai, db, broadcastID);
+ //   console.log("NECESSARY:", topicTransitions)
     // Retrieve broadcast topics with associated topic segments
     const broadcast = await db.broadcast.findUniqueOrThrow({
       where: { id: broadcastID },
@@ -62,11 +62,14 @@ async function generateCombinedBroadcast(ai: AI, db: PrismaClient, broadcastID: 
             topicSegment: true,
           },
         },
+      
       },
     });
 
     // ... rest of your code ...
-
+    const transition = db.broadcast
+    console.log("TRANSITION!:", transition)
+    console.log("BREAK")
     for (const topic of broadcast.topics) {
       console.log(`Topic: ${topic.name}, ${topic.query}`);
 
@@ -77,8 +80,11 @@ async function generateCombinedBroadcast(ai: AI, db: PrismaClient, broadcastID: 
 
       // Access topicSegment data
       const prev = topic
+      console.log("PREV:", prev)
       const { introduction, body, conclusion } = topic.topicSegment;
       console.log(`TopicSegment: ${introduction}, ${body}, ${conclusion}`);
+   //   console.log(topicTransitions)
+
 
       /*
 
