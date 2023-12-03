@@ -10,7 +10,7 @@
           <h1 class="title is-1">newscast</h1>
           <h2 class="subtitle is-3">News broadcasts, generated w/ AI</h2>
 
-          <button class="button is-medium is-primary is-light">Get started</button>
+          <a href="/broadcast" class="button is-medium is-primary is-light">Get started</a>
         </div>
         <div class="column is-3 is-text-centered">
           <img src={newscastImg} alt="newscast icon" />
