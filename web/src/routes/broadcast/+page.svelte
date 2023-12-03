@@ -4,6 +4,7 @@
   import type { PageData } from './$types';
   import Delete from './Delete.svelte';
   import New from './New.svelte';
+  import newscastImg from '$lib/assets/newscast.svg';
 
   export let data: PageData;
 </script>
@@ -13,7 +14,7 @@
     <div class="container">
       <nav class="breadcrumb" aria-label="breadcrumbs">
         <ul>
-          <li><a href="/">newscast</a></li>
+          <li><a href="/"><img class="image is-24x24" src={newscastImg} alt="newscast icon" /></a></li>
           <li class="is-active"><a href="/broadcast">Broadcast</a></li>
         </ul>
       </nav>
