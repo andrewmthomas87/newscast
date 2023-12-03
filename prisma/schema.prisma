@@ -13,4 +13,17 @@ datasource db {
 model Broadcast {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
+
+  topics Topic[]
+}
+
+model Topic {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  name  String
+  query String
+
+  broadcast   Broadcast @relation(fields: [broadcastID], references: [id])
+  broadcastID Int
 }

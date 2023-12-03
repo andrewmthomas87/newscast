@@ -3,7 +3,10 @@ import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-  const broadcasts = await db.broadcast.findMany({ orderBy: { createdAt: 'desc' } });
+  const broadcasts = await db.broadcast.findMany({
+    include: { _count: { select: { topics: true } } },
+    orderBy: { createdAt: 'desc' },
+  });
 
   return { broadcasts };
 };

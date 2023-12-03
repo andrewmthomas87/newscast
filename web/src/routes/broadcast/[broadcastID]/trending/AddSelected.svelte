@@ -1,13 +1,13 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import type { APITopic } from '$lib/bingNewsAPI/types';
 
-  export let broadcastID: number;
+  export let trends: APITopic[];
 
   let isSubmitting = false;
 </script>
 
 <form
-  action="?/delete"
   method="POST"
   use:enhance={() => {
     isSubmitting = true;
@@ -18,7 +18,6 @@
     };
   }}
 >
-  <input type="hidden" name="broadcast-id" value={broadcastID} />
-
-  <button class="button is-small is-danger is-inverted" class:is-loading={isSubmitting}>Delete</button>
+  <input type="hidden" name="trends" value={JSON.stringify(trends)} />
+  <button type="submit" class="button is-success" class:is-loading={isSubmitting}>Add selected</button>
 </form>

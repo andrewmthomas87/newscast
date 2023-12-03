@@ -23,7 +23,7 @@
       <div class="level">
         <div class="level-left">
           <div class="level-item">
-            <p class="is-size-5">{data.broadcasts.length} item{data.broadcasts.length !== 1 ? 's' : ''}</p>
+            <p>{data.broadcasts.length} item{data.broadcasts.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
 
@@ -39,6 +39,7 @@
           <thead>
             <tr>
               <th>ID</th>
+              <th># Topics</th>
               <th>Created at</th>
               <th></th>
             </tr>
@@ -47,6 +48,7 @@
             {#each data.broadcasts as broadcast (broadcast.id)}
               <tr on:dblclick={() => goto(`/broadcast/${broadcast.id}`)}>
                 <td>{broadcast.id}</td>
+                <td>{broadcast._count.topics}</td>
                 <td>{defaultFormatter.format(broadcast.createdAt)}</td>
                 <td class="has-text-right">
                   <Delete broadcastID={broadcast.id} />
