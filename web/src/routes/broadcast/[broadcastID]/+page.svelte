@@ -1,7 +1,11 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import type { PageData } from './$types';
+  import Topics from './Topics.svelte';
 
-  $: id = $page.params['broadcastID'];
+  export let data: PageData;
+
+  $: id = Number($page.params['broadcastID']);
 </script>
 
 <main>
@@ -16,6 +20,8 @@
       </nav>
 
       <h1 class="title">Broadcast {id}</h1>
+
+      <Topics broadcastID={id} topics={data.topics} />
     </div>
   </section>
 </main>

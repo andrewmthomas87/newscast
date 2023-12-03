@@ -1,13 +1,13 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
 
-  export let broadcastID: number;
+  export let topicID: number;
 
   let isSubmitting = false;
 </script>
 
 <form
-  action="?/delete"
+  action="?/delete-topic"
   method="POST"
   use:enhance={() => {
     isSubmitting = true;
@@ -18,7 +18,7 @@
     };
   }}
 >
-  <input type="hidden" name="broadcast-id" value={broadcastID} />
+  <input type="hidden" name="topic-id" value={topicID} />
 
   <button class="button is-small is-danger is-inverted" class:is-loading={isSubmitting}>Delete</button>
 </form>
