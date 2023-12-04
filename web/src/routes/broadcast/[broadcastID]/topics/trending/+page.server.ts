@@ -46,6 +46,6 @@ export const actions = {
       },
     });
 
-    throw redirect(303, `/broadcast/${id}`);
+    throw redirect(303, `/broadcast/${id}/topics`);
   },
 } satisfies Actions;

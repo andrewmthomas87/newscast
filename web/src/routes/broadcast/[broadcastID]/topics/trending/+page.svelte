@@ -40,7 +40,8 @@
           <li><a href="/"><img class="image is-24x24" src={newscastImg} alt="newscast icon" /></a></li>
           <li><a href="/broadcast">Broadcast</a></li>
           <li><a href="/broadcast/{id}">{id}</a></li>
-          <li class="is-active"><a href="/broadcast/{id}/trending">Trending</a></li>
+          <li><a href="/broadcast/{id}/topics">Topics</a></li>
+          <li class="is-active"><a href="/broadcast/{id}/topics/trending">Trending</a></li>
         </ul>
       </nav>
 
