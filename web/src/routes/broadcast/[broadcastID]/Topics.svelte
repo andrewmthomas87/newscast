@@ -27,7 +27,6 @@
     <table class="table is-hoverable is-fullwidth">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Name</th>
           <th>Query</th>
           <th>Created at</th>
@@ -37,7 +36,6 @@
       <tbody>
         {#each topics as topic (topic.id)}
           <tr>
-            <td>{topic.id}</td>
             <td>{topic.name}</td>
             <td>{topic.query}</td>
             <td>{defaultFormatter.format(topic.createdAt)}</td>
