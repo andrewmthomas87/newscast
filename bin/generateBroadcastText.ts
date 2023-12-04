@@ -73,6 +73,14 @@ async function generateBroadcastText(ai: AI, db: PrismaClient, broadcastID: numb
       introduction: segment.introduction,
       body: segment.body,
       conclusion: segment.conclusion,
+
+      //##
+      
+      images:topic.topicSummary.images,
+
+      //##
+
+    
     });
   }
 

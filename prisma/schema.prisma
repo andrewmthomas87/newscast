@@ -66,6 +66,7 @@ model TopicSummary {
 
   model   String
   summary String
+  images Json
 }
 
 model ArticleSummary {
@@ -84,4 +85,5 @@ model TopicSegment {
   introduction String
   body         String
   conclusion   String
+  images Json
 }

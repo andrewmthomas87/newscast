@@ -44,6 +44,24 @@ while (true) {
 
 console.log('No more summarize jobs');
 
+
+//##
+import { JSDOM } from 'jsdom';
+
+function extractImages(data) {
+  // Create a new JSDOM instance with the content of the article
+  const dom = new JSDOM(data.content);
+
+  // Get all img elements in the article content
+  const imgElements = dom.window.document.querySelectorAll('img');
+
+  // Extract the src attribute of each img element
+  const imgSrcs = Array.from(imgElements).map(img => img.src);
+
+  return imgSrcs;
+}
+///##
+
 async function summarize(ai: AI, db: PrismaClient, broadcastID: number) {
   const broadcast = await db.broadcast.findUniqueOrThrow({
     where: { id: broadcastID },
@@ -54,8 +72,15 @@ async function summarize(ai: AI, db: PrismaClient, broadcastID: number) {
   const topicSummaryCreateInputs: Prisma.TopicSummaryCreateInput[] = [];
   for (const topic of broadcast.topics) {
     console.log(`Topic: ${topic.name}, ${topic.query}`);
-
     const summaries = [];
+
+    //##
+
+    const topicImages = [];
+
+    //##
+
+
     for (const article of topic.articles) {
       console.log(`Article: ${article.name}, ${article.url}`);
       console.log('Generating summary...');
@@ -65,7 +90,14 @@ async function summarize(ai: AI, db: PrismaClient, broadcastID: number) {
 
       console.log(summary);
       console.log('Summary generated');
+      ///##
 
+
+      const imgSrcs = extractImages(article.data);
+      topicImages.push(...imgSrcs);
+
+
+      //##
       articleSummaryCreateInputs.push({
         article: { connect: { id: article.id } },
         model: ai.model,
@@ -88,6 +120,12 @@ async function summarize(ai: AI, db: PrismaClient, broadcastID: number) {
       topic: { connect: { id: topic.id } },
       model: ai.model,
       summary: topicSummary,
+
+      //##
+      
+      images: topicImages,
+
+      //##
     });
   }
 
