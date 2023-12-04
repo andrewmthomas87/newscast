@@ -92,7 +92,7 @@ export async function generateTransitions(ai: AI, db: PrismaClient, broadcastID:
     topicTransitionCreateInputs.push({
       prevTopic: { connect: {topicID: first.topicSegment?.topicID } },
       nextTopic: { connect: { topicID: second.topicSegment?.topicID } },
-      transition: transition
+      transition: transition,
     });
   }
 

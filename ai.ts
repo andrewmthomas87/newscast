@@ -162,14 +162,15 @@ export class AI {
   
 
   async generateTransition(summary1: string, summary2: string){
+    console.log("SS1:", summary1, "SS2:", summary2)
     const messages: OpenAI.ChatCompletionMessage[] = [
       {
-        role: 'system',
-        content: 'You are given two news article summaries. Create a one sentence that easily transitions between the two summaries.',
+        role: 'user',
+        content: 'You are given two news article summaries. Create a one sentence that easily transitions between the first summary provided first to the second summary. Make the transition 25 words or less.',
       },
       {
         role: 'user',
-        content: `${summary1}\n\n${summary2}`,
+        content: `Summary 1: ${summary1}\n\n Summary 2: ${summary2}`,
       },
     ];
 

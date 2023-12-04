@@ -3,8 +3,10 @@ import { z } from 'zod';
 import { AI } from '../ai';
 import { db } from '../db';
 import { JobPayload, JobPayloadSchema, JobType, claimJob, markJobCompleted, markJobFailed } from '../db/jobs';
+import { getCombinedModifierFlags } from '../node_modules/typescript/lib/typescript';
 import { Throttler } from '../utils/throttler';
 import { generateTransitions } from './generateTransitions';
+import { exec } from 'child_process';
 
 const env = z
   .object({
@@ -59,7 +61,13 @@ async function generateCombinedBroadcast(ai: AI, db: PrismaClient, broadcastID: 
       include: {
         topics: {
           include: {
-            topicSegment: true,
+            topicSegment: {
+              include: {
+                prevTransition: true,
+                nextTransition: true,
+                
+              }
+            },
           },
         },
       
@@ -67,10 +75,14 @@ async function generateCombinedBroadcast(ai: AI, db: PrismaClient, broadcastID: 
     });
 
     // ... rest of your code ...
-    const transition = db.broadcast
-    console.log("TRANSITION!:", transition)
+    // const transition = db.broadcast
+    // console.log("TRANSITION!:", transition)
+    const arr = []
+    const str = ""
+    let finalText = ""
     console.log("BREAK")
     for (const topic of broadcast.topics) {
+      console.log(" ")
       console.log(`Topic: ${topic.name}, ${topic.query}`);
 
       if (!topic.topicSegment) {
@@ -79,10 +91,29 @@ async function generateCombinedBroadcast(ai: AI, db: PrismaClient, broadcastID: 
       }
 
       // Access topicSegment data
-      const prev = topic
+      const prev = topic.topicSegment.prevTransition
       console.log("PREV:", prev)
-      const { introduction, body, conclusion } = topic.topicSegment;
-      console.log(`TopicSegment: ${introduction}, ${body}, ${conclusion}`);
+      const next = topic.topicSegment.nextTransition
+      console.log("NEXT:", next)
+      const prevtransition = prev?.transition
+      console.log("TRATRA:", prevtransition, next?.transition)
+
+      let combined = ""
+      
+      if ((prev && next) || (prev)){
+        combined = [topic.topicSegment?.body, prev?.transition].join('\n\n');
+      } else{
+        combined = [topic.topicSegment?.body].join('\n\n');
+      }
+      arr.push(combined)
+      finalText = [finalText, combined].join('\n\n');
+      
+      console.log("COMBINED:", combined)
+      console.log("ARR:", arr)
+
+
+      // const { introduction, body, conclusion } = topic.topicSegment;
+      // console.log(`TopicSegment: ${introduction}, ${body}, ${conclusion}`);
    //   console.log(topicTransitions)
 
 
@@ -131,6 +162,38 @@ async function generateCombinedBroadcast(ai: AI, db: PrismaClient, broadcastID: 
 
       */
     }
+    console.log(finalText)
+
+
+        // Export the string to Python
+    const jsonString = JSON.stringify({data: finalText});
+    console.log("3")
+    // Execute a Python script and pass the JSON string via stdin
+    const pythonProcess = exec('python bin/NewsDemo.py', (error, stdout, stderr) => {
+      console.log(`Python script output: ${stdout}`);
+      console.error(`Python script error: ${stderr}`);
+      if (error) {
+        console.error(`Error executing Python script: ${error}`);
+      }
+    });
+
+    console.log("1")
+    // Check if stdin is not null before using it
+    if (pythonProcess.stdin) {
+      console.log("python")
+      pythonProcess.stdin.write(jsonString);
+      console.log("first")
+      pythonProcess.stdin.end();
+      
+    } else {
+      console.log("2")
+      console.error('stdin is null or undefined');
+    }
+
+    console.log('Python script called'); 
+
+
+
   } catch (error) {
     console.error('Error generating combined broadcast:', error);
     throw error; // Rethrow the error for the caller to handle
