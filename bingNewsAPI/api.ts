@@ -20,10 +20,11 @@ export class BingNewsAPI {
         },
       }),
     );
+    console.log(this.subscriptionKey, "unraveled")
     if (res.status !== 200) {
       throw res;
     }
-
+    console.log("unraveled1")
     const data: APITrendingTopics | APIErrorResponse = await res.json();
     if (data._type !== 'TrendingTopics') {
       throw data;

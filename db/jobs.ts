@@ -5,7 +5,9 @@ export const JobType = {
   gatherNews: 'gatherNews',
   summarize: 'summarize',
   generateBroadcastText: 'generateBroadcastText',
+  generateTransitions: 'generateTransitions',
   generateBroadcastAudio: 'generateBroadcastAudio',
+  generateCombinedBroadcast: 'generateCombinedBroadcast'
 } as const;
 
 export type JobType = (typeof JobType)[keyof typeof JobType];
@@ -15,7 +17,9 @@ export const JobPayloadSchema = {
   gatherNews: z.object({ broadcastID: z.number() }),
   summarize: z.object({ broadcastID: z.number() }),
   generateBroadcastText: z.object({ broadcastID: z.number() }),
+  generateTransitions: z.object({ broadcastID: z.number() }),
   generateBroadcastAudio: z.object({ broadcastID: z.number() }),
+  generateCombinedBroadcast: z.object({ broadcastID: z.number() }),
 } satisfies Record<JobType, Schema>;
 
 export type JobPayload = {

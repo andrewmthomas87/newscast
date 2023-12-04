@@ -115,11 +115,10 @@ export class AI {
         max_tokens: 64,
       }),
     );
-    const intro = completion.choices[0].message.content;
-    if (!intro) {
+    const introduction = completion.choices[0].message.content;
+    if (!introduction) {
       throw new Error('expected completion content');
     }
-    const introduction = ""
 
     messages.push(completion.choices[0].message);
     messages.push({
@@ -156,38 +155,4 @@ export class AI {
 
     return { introduction, body, conclusion };
   }
-
-
-
-  
-
-  async generateTransition(summary1: string, summary2: string){
-    console.log("SS1:", summary1, "SS2:", summary2)
-    const messages: OpenAI.ChatCompletionMessage[] = [
-      {
-        role: 'user',
-        content: 'You are given two news article summaries. Create a one sentence that easily transitions between the first summary provided first to the second summary. Make the transition 25 words or less.',
-      },
-      {
-        role: 'user',
-        content: `Summary 1: ${summary1}\n\n Summary 2: ${summary2}`,
-      },
-    ];
-
-    const completion = await this.throttler.run(() =>
-      this.openai.chat.completions.create({
-        model: this.model,
-        messages,
-        max_tokens: 512,
-      }),
-    );
-    const transition = completion.choices[0].message.content;
-    if (!transition) {
-      throw new Error('expected completion content');
-    }
-
-    return transition
-
-  }
-  
 }

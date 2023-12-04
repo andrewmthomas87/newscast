@@ -84,4 +84,30 @@ model TopicSegment {
   introduction String
   body         String
   conclusion   String
+
+  prevTransition TopicTransition? @relation(name: "prev")
+  nextTransition TopicTransition? @relation(name: "next")
 }
+
+model TopicTransition {
+
+  prevTopic               TopicSegment @relation(name: "prev", fields: [prevTopicSegmentTopicID], references: [topicID])
+  prevTopicSegmentTopicID Int          @unique
+  nextTopic               TopicSegment @relation(name: "next", fields: [nextTopicSegmentTopicID], references: [topicID])
+  nextTopicSegmentTopicID Int          @unique
+
+  transition String
+
+  @@id([prevTopicSegmentTopicID, nextTopicSegmentTopicID])
+}
+
+// model CombinedSegments {
+//   topic combinedSegment @relation(fields: [topicID], references: [id])
+//   topicID      Int @id
+
+//   model        String
+//   article      String
+//   transitionId Int @id @default(autoincrement())
+//   transition   String
+
+// }
